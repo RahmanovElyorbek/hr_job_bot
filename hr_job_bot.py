@@ -107,7 +107,6 @@ async def get_position(message: types.Message, state: FSMContext):
 
     text = f"""
 📌 Yangi ishchi arizasi!
-
 👤 Ismi: {data['name']}
 📞 Telefon: {data['phone']}
 🎂 Yoshi: {data['age']}
