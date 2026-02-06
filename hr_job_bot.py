@@ -14,7 +14,7 @@ import os
 TOKEN = os.getenv("BOT_TOKEN")
 ADMIN_ID = 8008645253
 logging.basicConfig(level=logging.INFO)
-bot = Bot(token=API_TOKEN)
+bot = Bot(token=TOKEN)
 dp = Dispatcher(bot, storage=MemoryStorage())
 
 scope = [
