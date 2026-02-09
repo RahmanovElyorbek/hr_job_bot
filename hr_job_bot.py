@@ -45,6 +45,12 @@ class JobForm(StatesGroup):
     age = State()
     position = State()
 
+def position_keyboard():
+    kb = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    kb.add("🛒 Sotuvchi", "💳 Kassir")
+    kb.add("📦 Yuk tashuvchi", "🧹 Farrosh")
+    return kb
+
 
 # ================= START =================
 @dp.message_handler(commands="start")
@@ -94,13 +100,26 @@ async def get_age(message: types.Message, state: FSMContext):
 
     await state.update_data(age=message.text)
 
-    await message.answer("Qaysi lavozimga ishga kirmoqchisiz?")
+    await message.answer(
+    "Qaysi lavozimga ishga kirmoqchisiz?",
+    reply_markup=position_keyboard()
+    )
     await JobForm.position.set()
 
 
 # ================= POSITION =================
 @dp.message_handler(state=JobForm.position)
 async def get_position(message: types.Message, state: FSMContext):
+    VALID_POSITIONS = [
+    "🛒 Sotuvchi",
+    "💳 Kassir",
+    "📦 Yuk tashuvchi",
+    "🧹 Farrosh"
+    ]
+
+    if message.text not in VALID_POSITIONS:
+    await message.answer("Iltimos tugmalardan birini tanlang 👇")
+    return
 
     await state.update_data(position=message.text)
     data = await state.get_data()
@@ -108,6 +127,11 @@ async def get_position(message: types.Message, state: FSMContext):
     now = datetime.now().strftime("%Y-%m-%d %H:%M")
 
     # ===== SHEETGA YOZISH =====
+    await message.answer(
+    "✅ Rahmat! Arizangiz qabul qilindi.",
+    reply_markup=types.ReplyKeyboardRemove()
+    )
+
     sheet.append_row([
         data.get('name'),
         data.get('phone'),
