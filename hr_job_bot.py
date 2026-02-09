@@ -3,14 +3,15 @@ import json
 import os
 from datetime import datetime
 
-from aiogram import Bot, Dispatcher, executor, types
+from aiogram import Bot, Dispatcher, types
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
-
+from aiohttp import web
+from aiogram.dispatcher.webhook import get_new_configured_app
 
 # ================= LOGGING =================
 logging.basicConfig(level=logging.INFO)
@@ -164,5 +165,24 @@ async def get_position(message: types.Message, state: FSMContext):
 
 
 # ================= RUN =================
+
+WEBHOOK_HOST = "https://hr-job-bot.onrender.com"
+WEBHOOK_PATH = f"/webhook/{TOKEN}"
+WEBHOOK_URL = f"{WEBHOOK_HOST}{WEBHOOK_PATH}"
+
+async def on_startup(dp):
+    await bot.set_webhook(WEBHOOK_URL)
+    logging.warning("✅ Webhook ishga tushdi!")
+
+async def on_shutdown(dp):
+    await bot.delete_webhook()
+    logging.warning("⛔ Webhook o‘chirildi!")
+
 if __name__ == "__main__":
-    executor.start_polling(dp, skip_updates=True)
+
+    app = get_new_configured_app(dispatcher=dp, path=WEBHOOK_PATH)
+
+    app.on_startup.append(on_startup)
+    app.on_shutdown.append(on_shutdown)
+
+    web.run_app(app, host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
