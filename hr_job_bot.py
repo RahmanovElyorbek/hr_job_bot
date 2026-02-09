@@ -108,39 +108,46 @@ async def get_age(message: types.Message, state: FSMContext):
 
 
 # ================= POSITION =================
+# ================= POSITION =================
 @dp.message_handler(state=JobForm.position)
 async def get_position(message: types.Message, state: FSMContext):
+
     VALID_POSITIONS = [
-    "🛒 Sotuvchi",
-    "💳 Kassir",
-    "📦 Yuk tashuvchi",
-    "🧹 Farrosh"
+        "🛒 Sotuvchi",
+        "💳 Kassir",
+        "📦 Yuk tashuvchi",
+        "🧹 Farrosh"
     ]
 
+    # Tugmadan tanlashni majbur qilamiz
     if message.text not in VALID_POSITIONS:
-    await message.answer("Iltimos tugmalardan birini tanlang 👇")
-    return
+        await message.answer("Iltimos tugmalardan birini tanlang 👇")
+        return
 
     await state.update_data(position=message.text)
     data = await state.get_data()
 
     now = datetime.now().strftime("%Y-%m-%d %H:%M")
 
-    # ===== SHEETGA YOZISH =====
+    # USERGA DARROV JAVOB
     await message.answer(
-    "✅ Rahmat! Arizangiz qabul qilindi.",
-    reply_markup=types.ReplyKeyboardRemove()
+        "✅ Rahmat! Arizangiz qabul qilindi.",
+        reply_markup=types.ReplyKeyboardRemove()
     )
 
-    sheet.append_row([
-        data.get('name'),
-        data.get('phone'),
-        data.get('age'),
-        data.get('position'),
-        now
-    ])
+    # SHEETGA YOZISH
+    try:
+        sheet.append_row([
+            data.get('name'),
+            data.get('phone'),
+            data.get('age'),
+            data.get('position'),
+            now
+        ])
+    except Exception as e:
+        logging.error(f"Sheetga yozilmadi: {e}")
 
-    # ===== ADMINGA YUBORISH =====
+    # ADMINGA YUBORISH
     text = f"""
 📌 Yangi ishchi!
 
@@ -153,7 +160,6 @@ async def get_position(message: types.Message, state: FSMContext):
 
     await bot.send_message(ADMIN_ID, text)
 
-    await message.answer("✅ Rahmat! Tez orada siz bilan bog‘lanamiz.")
     await state.finish()
 
 
