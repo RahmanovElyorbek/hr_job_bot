@@ -210,6 +210,7 @@ WEBHOOK_URL = f"{WEBHOOK_HOST}{WEBHOOK_PATH}"
 
 
 async def on_startup(dp):
+    await bot.delete_webhook(drop_pending_updates=True)
     await bot.set_webhook(WEBHOOK_URL)
     logging.warning("✅ Webhook ishga tushdi!")
 
