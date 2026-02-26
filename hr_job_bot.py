@@ -10,6 +10,7 @@ from aiogram.dispatcher.filters.state import State, StatesGroup
 
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
+
 from aiohttp import web
 from aiogram.dispatcher.webhook import get_new_configured_app
 
@@ -24,7 +25,6 @@ ADMIN_ID = 8008645253
 bot = Bot(token=TOKEN)
 dp = Dispatcher(bot, storage=MemoryStorage())
 
-
 # ================= GOOGLE SHEETS =================
 scope = [
     "https://spreadsheets.google.com/feeds",
@@ -38,14 +38,17 @@ sheet = client.open("Ishchilar_bazasi").sheet1
 
 logging.info("✅ Google Sheets ulandi")
 
-
 # ================= STATES =================
 class JobForm(StatesGroup):
     name = State()
     phone = State()
     age = State()
     position = State()
+    shift = State()
+    address = State()
 
+
+# ================= KEYBOARDS =================
 def position_keyboard():
     kb = types.ReplyKeyboardMarkup(resize_keyboard=True)
     kb.add("🛒 Sotuvchi", "💳 Kassir")
@@ -53,10 +56,19 @@ def position_keyboard():
     return kb
 
 
+def shift_keyboard():
+    kb = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    kb.add("🌞 Kunduzgi smena")
+    kb.add("🌙 Kechki smena")
+    return kb
+
+
 # ================= START =================
 @dp.message_handler(commands="start")
 async def start(message: types.Message):
-    await message.answer("👋 Assalomu alaykum!\n\nIsmingizni yozing:")
+    await message.answer(
+        "👋 Assalomu alaykum!\n\nIsmingizni yozing:"
+    )
     await JobForm.name.set()
 
 
@@ -102,13 +114,13 @@ async def get_age(message: types.Message, state: FSMContext):
     await state.update_data(age=message.text)
 
     await message.answer(
-    "Qaysi lavozimga ishga kirmoqchisiz?",
-    reply_markup=position_keyboard()
+        "Qaysi lavozimga ishga kirmoqchisiz?",
+        reply_markup=position_keyboard()
     )
+
     await JobForm.position.set()
 
 
-# ================= POSITION =================
 # ================= POSITION =================
 @dp.message_handler(state=JobForm.position)
 async def get_position(message: types.Message, state: FSMContext):
@@ -120,63 +132,92 @@ async def get_position(message: types.Message, state: FSMContext):
         "🧹 Farrosh"
     ]
 
-    # Tugmadan tanlashni majbur qilamiz
     if message.text not in VALID_POSITIONS:
         await message.answer("Iltimos tugmalardan birini tanlang 👇")
         return
 
     await state.update_data(position=message.text)
+
+    await message.answer(
+        "Qaysi smenada ishlamoqchisiz?",
+        reply_markup=shift_keyboard()
+    )
+
+    await JobForm.shift.set()
+
+
+# ================= SHIFT =================
+@dp.message_handler(state=JobForm.shift)
+async def get_shift(message: types.Message, state: FSMContext):
+
+    await state.update_data(shift=message.text)
+
+    await message.answer(
+        "📍 Yashash manzilingizni yozing:",
+        reply_markup=types.ReplyKeyboardRemove()
+    )
+
+    await JobForm.address.set()
+
+
+# ================= ADDRESS + SAVE =================
+@dp.message_handler(state=JobForm.address)
+async def get_address(message: types.Message, state: FSMContext):
+
+    await state.update_data(address=message.text)
     data = await state.get_data()
 
     now = datetime.now().strftime("%Y-%m-%d %H:%M")
 
-    # USERGA DARROV JAVOB
-    await message.answer(
-        "✅ Rahmat! Arizangiz qabul qilindi.",
-        reply_markup=types.ReplyKeyboardRemove()
-    )
+    text = f"""
+📌 Yangi ishchi arizasi
 
-    # SHEETGA YOZISH
+👤 Ismi: {data['name']}
+📞 Telefon: {data['phone']}
+🎂 Yoshi: {data['age']}
+💼 Lavozim: {data['position']}
+🕐 Smena: {data['shift']}
+📍 Manzil: {data['address']}
+🕒 Vaqt: {now}
+"""
+
+    # GOOGLE SHEETS SAVE
     try:
         sheet.append_row([
-            data.get('name'),
-            data.get('phone'),
-            data.get('age'),
-            data.get('position'),
+            data['name'],
+            data['phone'],
+            data['age'],
+            data['position'],
+            data['shift'],
+            data['address'],
             now
         ])
     except Exception as e:
         logging.error(f"Sheetga yozilmadi: {e}")
 
-    # ADMINGA YUBORISH
-    text = f"""
-📌 Yangi ishchi!
-
-👤 {data.get('name')}
-📞 {data.get('phone')}
-🎂 {data.get('age')}
-💼 {data.get('position')}
-🕒 {now}
-"""
-
+    # ADMIN MESSAGE
     await bot.send_message(ADMIN_ID, text)
+
+    await message.answer("✅ Arizangiz qabul qilindi!")
 
     await state.finish()
 
 
-# ================= RUN =================
-
+# ================= WEBHOOK (RENDER READY) =================
 WEBHOOK_HOST = "https://hr-job-bot.onrender.com"
 WEBHOOK_PATH = f"/webhook/{TOKEN}"
 WEBHOOK_URL = f"{WEBHOOK_HOST}{WEBHOOK_PATH}"
+
 
 async def on_startup(dp):
     await bot.set_webhook(WEBHOOK_URL)
     logging.warning("✅ Webhook ishga tushdi!")
 
+
 async def on_shutdown(dp):
     await bot.delete_webhook()
     logging.warning("⛔ Webhook o‘chirildi!")
+
 
 if __name__ == "__main__":
 
