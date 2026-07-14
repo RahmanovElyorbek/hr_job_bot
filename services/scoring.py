@@ -20,6 +20,8 @@ Har javob uchun javob berish vaqti (soniyalarda) berilgan. Vaziyatli savolga
 10 soniyadan tez berilgan uzun javob — nusxa ko'chirilgan bo'lishi mumkin,
 buni izohda belgila.
 
+Har bir "comment" — bitta qisqa jumla (10 so'zdan oshmasin).
+
 Faqat quyidagi JSON formatda javob ber, boshqa hech narsa yozma:
 {{
   "scores": [{{"question_id": "K1", "score": 2, "comment": "..."}}],
@@ -64,7 +66,7 @@ async def score_candidate(position_label: str, answers: list[dict]) -> dict | No
         client = _get_client()
         response = await client.messages.create(
             model=MODEL,
-            max_tokens=2000,
+            max_tokens=4096,
             system=system_prompt,
             messages=[{"role": "user", "content": user_content}],
         )
