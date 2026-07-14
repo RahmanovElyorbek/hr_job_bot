@@ -70,7 +70,9 @@ async def score_candidate(position_label: str, answers: list[dict]) -> dict | No
             system=system_prompt,
             messages=[{"role": "user", "content": user_content}],
         )
-        raw_text = response.content[0].text.strip()
+        raw_text = next(
+            block.text for block in response.content if block.type == "text"
+        ).strip()
         if raw_text.startswith("```"):
             raw_text = raw_text.strip("`")
             if raw_text.startswith("json"):
