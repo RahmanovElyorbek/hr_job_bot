@@ -7,7 +7,7 @@ from config import ANTHROPIC_API_KEY
 
 logger = logging.getLogger(__name__)
 
-MODEL = "claude-sonnet-4-6"
+MODEL = "claude-sonnet-5"
 
 SYSTEM_PROMPT = """Sen 20 yillik supermarket tajribasiga ega HR ekspertsan. Quyida {position}
 lavozimiga nomzodning suhbat javoblari berilgan. Har bir savol yonida
