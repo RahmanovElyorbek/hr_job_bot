@@ -5,6 +5,7 @@ POSITIONS = {
     "sotuvchi": "🛒 Zal sotuvchisi",
     "omborchi": "📦 Omborchi",
     "farrosh": "🧹 Farrosh",
+    "qoriqchi": "🛡️ Qo'riqchi",
 }
 
 # ---- BLOK 0: Avtofiltr ----
@@ -175,9 +176,41 @@ SITUATIONS = {
             "auto_reject": False,
         },
     ],
+    "qoriqchi": [
+        {
+            "id": "G1",
+            "text": "Chiqish eshigidagi signalizatsiya ishlab ketdi, mijoz \"men hech narsa olmadim\" deb ketishga urinmoqda. Aniq qadamma-qadam nima qilasiz?",
+            "measures": "Protsedura bilishi, nizoni to'g'ri hal qilish. To'g'ri yo'nalish: xushmuomala to'xtatish, ayblamaslik, rahbarga xabar",
+            "auto_reject": False,
+        },
+        {
+            "id": "G2",
+            "text": "Tungi smenada tanish do'stingiz \"faqat besh daqiqaga kirib chiqaman\" deb yopiq do'konga kiritishni so'ramoqda. Javobingiz?",
+            "measures": "Halollik, qoidaga sodiqlik. Har qanday \"kiritib yuboraman\" = avtomatik rad",
+            "auto_reject": True,
+        },
+        {
+            "id": "G3",
+            "text": "Hamkasbingiz omborda mahsulot o'g'irlayotganini ko'rdingiz. Nima qilasiz?",
+            "measures": "Halollik. \"Hech nima qilmayman\" = avtomatik rad. To'g'ri: rahbarga xabar",
+            "auto_reject": True,
+        },
+        {
+            "id": "G4",
+            "text": "Ikki mijoz o'rtasida janjal boshlanib, ovoz balandlashdi, atrofda bolalar bor. Qadamma-qadam nima qilasiz?",
+            "measures": "Bosim ostida xotirjamlik, xavfsizlikni ta'minlash",
+            "auto_reject": False,
+        },
+        {
+            "id": "G5",
+            "text": "Smena tugashiga 10 daqiqa qolganda yong'in signalizatsiyasi ishga tushdi. Nima qilasiz?",
+            "measures": "Favqulodda vaziyatga tayyorlik, mas'uliyat",
+            "auto_reject": False,
+        },
+    ],
 }
 
-AUTO_REJECT_QUESTION_IDS = {"K4", "S2", "F3"}
+AUTO_REJECT_QUESTION_IDS = {"K4", "S2", "F3", "G2", "G3"}
 
 OMBORCHI_HEALTH_QUESTION = "Og'ir yuk ko'tarishga sog'lig'ingiz yo'l qo'yadimi?"
 
@@ -188,6 +221,7 @@ MEDIA_CONFIG = {
     "sotuvchi": {"voice": True, "video": True},
     "omborchi": {"voice": True, "video": False},
     "farrosh": {"voice": False, "video": False},
+    "qoriqchi": {"voice": True, "video": False},
 }
 
 VOICE_QUESTION_TEXT = (

@@ -33,6 +33,7 @@ HEADERS = [
     "answer_times", "voice_file_id", "video_file_id",
     "ai_percent", "ai_verdict", "ai_summary", "ai_red_flags",
     "status", "decided_by", "decided_at",
+    "G1", "G2", "G3", "G4", "G5",
 ]
 
 _worksheet = None
@@ -59,8 +60,14 @@ def _get_worksheet():
     except gspread.WorksheetNotFound:
         worksheet = spreadsheet.add_worksheet(WORKSHEET_NAME, rows=1000, cols=len(HEADERS))
 
-    if not worksheet.row_values(1):
+    existing_header = worksheet.row_values(1)
+    if not existing_header:
         worksheet.append_row(HEADERS)
+    elif existing_header != HEADERS and existing_header == HEADERS[: len(existing_header)]:
+        worksheet.update("A1", [HEADERS])
+        logger.info("Sheets header yangi ustunlar bilan sinxronlandi")
+    elif existing_header != HEADERS:
+        logger.warning("Sheets header koddagi HEADERS bilan mos kelmaydi, qo'lda tekshiring")
 
     _worksheet = worksheet
     logger.info("Google Sheets ulandi")
