@@ -28,6 +28,10 @@ buni izohda belgila.
 
 Har bir "comment" — bitta qisqa jumla (10 so'zdan oshmasin).
 
+Butun javobing bitta qatorda, valid JSON bo'lsin: matn maydonlari ichida
+haqiqiy yangi qator belgisi ishlatma, va agar matn ichida qo'shtirnoq (")
+belgisi kerak bo'lsa, uni \" deb escape qil.
+
 Faqat quyidagi JSON formatda javob ber, boshqa hech narsa yozma:
 {{
   "scores": [{{"question_id": "K1", "score": 2, "comment": "..."}}],
@@ -62,6 +66,55 @@ def _build_user_content(position_label: str, answers: list[dict]) -> str:
         lines.append(f"Javob berish vaqti: {a.get('elapsed', '?')} soniya")
         lines.append("")
     return "\n".join(lines)
+
+
+def _sanitize_json_text(raw: str) -> str:
+    """JSON qator ichidagi qochirilmagan boshqaruv belgilarini (\\n, \\r, \\t) escape qiladi."""
+    result = []
+    in_string = False
+    escape = False
+    for ch in raw:
+        if in_string:
+            if escape:
+                result.append(ch)
+                escape = False
+            elif ch == "\\":
+                result.append(ch)
+                escape = True
+            elif ch == '"':
+                result.append(ch)
+                in_string = False
+            elif ch == "\n":
+                result.append("\\n")
+            elif ch == "\r":
+                result.append("\\r")
+            elif ch == "\t":
+                result.append("\\t")
+            else:
+                result.append(ch)
+        else:
+            if ch == '"':
+                in_string = True
+            result.append(ch)
+    return "".join(result)
+
+
+def _parse_ai_response(raw_text: str) -> dict:
+    raw_text = raw_text.strip()
+    if raw_text.startswith("```"):
+        raw_text = raw_text.strip("`")
+        if raw_text.startswith("json"):
+            raw_text = raw_text[4:]
+    raw_text = raw_text.strip()
+
+    try:
+        return json.loads(raw_text)
+    except json.JSONDecodeError:
+        try:
+            return json.loads(_sanitize_json_text(raw_text))
+        except json.JSONDecodeError:
+            logger.warning(f"Claude javobi JSON emas, birinchi 500 belgi: {raw_text[:500]!r}")
+            raise
 
 
 def build_scoring_input(position: str, answers: dict, answer_times: dict) -> list[dict]:
@@ -104,12 +157,8 @@ async def score_candidate(position_label: str, answers: list[dict]) -> tuple[dic
             )
             raw_text = next(
                 block.text for block in response.content if block.type == "text"
-            ).strip()
-            if raw_text.startswith("```"):
-                raw_text = raw_text.strip("`")
-                if raw_text.startswith("json"):
-                    raw_text = raw_text[4:]
-            return json.loads(raw_text.strip()), None
+            )
+            return _parse_ai_response(raw_text), None
         except RETRYABLE_EXCEPTIONS as e:
             last_error = f"{type(e).__name__}: {e}"
             logger.warning(
