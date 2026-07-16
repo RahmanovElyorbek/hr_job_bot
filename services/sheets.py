@@ -96,6 +96,36 @@ async def update_status(row_number: int, status: str, decided_by: str, decided_a
     await asyncio.to_thread(_update_status_sync, row_number, status, decided_by, decided_at)
 
 
+def _get_candidate_row_sync(row_number: int) -> dict:
+    values = _get_worksheet().row_values(row_number)
+    return {header: (values[i] if i < len(values) else "") for i, header in enumerate(HEADERS)}
+
+
+async def get_candidate_row(row_number: int) -> dict:
+    return await asyncio.to_thread(_get_candidate_row_sync, row_number)
+
+
+def _update_ai_result_sync(row_number: int, ai_result: dict):
+    worksheet = _get_worksheet()
+    start_col = HEADERS.index("ai_percent") + 1
+    end_col = HEADERS.index("ai_red_flags") + 1
+    values = [[
+        ai_result.get("total_percent", ""),
+        ai_result.get("verdict", ""),
+        ai_result.get("summary", ""),
+        "; ".join(ai_result.get("red_flags", [])),
+    ]]
+    cell_range = (
+        f"{gspread.utils.rowcol_to_a1(row_number, start_col)}:"
+        f"{gspread.utils.rowcol_to_a1(row_number, end_col)}"
+    )
+    worksheet.update(cell_range, values)
+
+
+async def update_ai_result(row_number: int, ai_result: dict):
+    await asyncio.to_thread(_update_ai_result_sync, row_number, ai_result)
+
+
 def _has_recent_application_sync(telegram_id: int) -> bool:
     worksheet = _get_worksheet()
     records = worksheet.get_all_values()

@@ -27,7 +27,7 @@ from questions import (
     VIDEO_QUESTION_TEXT,
     VOICE_QUESTION_TEXT,
 )
-from services.scoring import score_candidate
+from services.scoring import build_scoring_input, score_candidate
 from services.sheets import append_candidate, now_tashkent_str
 from states import Interview
 
@@ -282,37 +282,13 @@ async def _finish_interview(message: Message, state: FSMContext):
     asyncio.create_task(_process_application(message.bot, candidate))
 
 
-def _scoring_input(position: str, answers: dict, answer_times: dict) -> list[dict]:
-    items = []
-    for q in BLOCK1_QUESTIONS:
-        if q["id"] in answers:
-            items.append({
-                "id": q["id"], "text": q["text"], "measures": q.get("measures", ""),
-                "answer": answers[q["id"]], "elapsed": answer_times.get(q["id"]),
-            })
-    for q in SITUATIONS[position]:
-        if q["id"] in answers:
-            items.append({
-                "id": q["id"], "text": q["text"], "measures": q.get("measures", ""),
-                "answer": answers[q["id"]], "elapsed": answer_times.get(q["id"]),
-                "weight": 2,
-            })
-    for q in BLOCK4_QUESTIONS:
-        if q["id"] in answers:
-            items.append({
-                "id": q["id"], "text": q["text"], "measures": q.get("measures", ""),
-                "answer": answers[q["id"]], "elapsed": answer_times.get(q["id"]),
-            })
-    return items
-
-
 async def _process_application(bot, candidate: dict):
     position = candidate["position"]
     answers = candidate.get("answers", {})
     answer_times = candidate.get("answer_times", {})
 
-    ai_result = await score_candidate(
-        POSITIONS[position], _scoring_input(position, answers, answer_times)
+    ai_result, _ = await score_candidate(
+        POSITIONS[position], build_scoring_input(position, answers, answer_times)
     )
 
     row = {
