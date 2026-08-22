@@ -17,6 +17,8 @@ from questions import (
     BLOCK0_SHIFT_OPTIONS,
     BLOCK0_SHIFT_REJECT,
     BLOCK0_START_DATE_OPTIONS,
+    MINOR_AGE_RANGE,
+    MINOR_SHIFT_LABEL,
     POSITIONS,
 )
 from services.sheets import has_recent_application
@@ -115,6 +117,21 @@ async def filter_branch(callback: CallbackQuery, state: FSMContext):
     await callback.message.edit_reply_markup(reply_markup=None)
 
     await state.update_data(branch=value)
+
+    data = await state.get_data()
+    if data.get("age_range") == MINOR_AGE_RANGE:
+        await state.update_data(shift_ok=MINOR_SHIFT_LABEL)
+        await callback.message.answer(
+            f"⚠️ Siz 16-17 yoshdasiz. Qonunchilikka ko'ra, siz faqat {MINOR_SHIFT_LABEL} "
+            "smenasida ishlashingiz mumkin. Arizangiz shu smena uchun qabul qilinadi."
+        )
+        await callback.message.answer(
+            "Qachondan ishni boshlay olasiz?",
+            reply_markup=_options_keyboard("b0start", BLOCK0_START_DATE_OPTIONS),
+        )
+        await state.set_state(Interview.filter_start_date)
+        return
+
     await callback.message.answer(
         "Smenali jadvalda (ertalabki/kechki) ishlay olasizmi?",
         reply_markup=_options_keyboard("b0shift", BLOCK0_SHIFT_OPTIONS),

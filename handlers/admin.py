@@ -11,7 +11,7 @@ from aiogram.types import (
 )
 
 from config import ADMIN_IDS, SHEET_ID
-from questions import POSITIONS
+from questions import MINOR_AGE_RANGE, MINOR_SHIFT_LABEL, POSITIONS
 from services.scoring import rescore_from_sheet
 from services.sheets import (
     TIMESTAMP_FORMAT,
@@ -60,8 +60,12 @@ def _build_summary_text(row_number, candidate: dict, ai_result: dict | None) -> 
         f"👤 {candidate['full_name']} | 📱 {contact}",
         f"💼 Lavozim: {position_label} | 🏪 Filial: {candidate.get('branch', '-')}",
         f"📅 Boshlashi mumkin: {candidate.get('start_date', '-')}",
-        "",
     ]
+
+    if candidate.get("age_range") == MINOR_AGE_RANGE:
+        lines.append(f"🔞 Yosh: {MINOR_AGE_RANGE} — faqat {MINOR_SHIFT_LABEL} ishlashi mumkin")
+
+    lines.append("")
 
     if ai_result:
         percent = ai_result.get("total_percent", "?")

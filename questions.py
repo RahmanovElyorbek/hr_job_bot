@@ -10,8 +10,10 @@ POSITIONS = {
 
 # ---- BLOK 0: Avtofiltr ----
 
-BLOCK0_AGE_OPTIONS = ["18 dan kichik", "18–25", "26–35", "36–45", "45+"]
-BLOCK0_AGE_REJECT = {"18 dan kichik"}
+BLOCK0_AGE_OPTIONS = ["16 dan kichik", "16–17", "18–25", "26–35", "36–45", "45+"]
+BLOCK0_AGE_REJECT = {"16 dan kichik"}
+MINOR_AGE_RANGE = "16–17"
+MINOR_SHIFT_LABEL = "2-smena (16:00–23:59)"
 
 BLOCK0_BRANCH_OPTIONS = ["Haqqulobod", "To'rtko'l", "Ikkalasi ham"]
 
