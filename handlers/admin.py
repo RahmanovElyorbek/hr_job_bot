@@ -10,7 +10,7 @@ from aiogram.types import (
     Message,
 )
 
-from config import ADMIN_IDS, SHEET_ID
+from config import ADMIN_IDS, SHEET_ID, TORTKOL_MANAGER_ID
 from questions import MINOR_AGE_RANGE, MINOR_SHIFT_LABEL, POSITIONS
 from services.scoring import rescore_from_sheet
 from services.sheets import (
@@ -40,6 +40,19 @@ CANDIDATE_MESSAGES = {
 }
 
 ACTION_TO_STATUS = {"invite": "invited", "reserve": "reserve", "reject": "rejected"}
+
+AUTHORIZED_IDS = set(ADMIN_IDS) | ({TORTKOL_MANAGER_ID} if TORTKOL_MANAGER_ID else set())
+
+
+def _recipients_for(branch: str) -> list[int]:
+    if branch == "To'rtko'l" and TORTKOL_MANAGER_ID:
+        return [TORTKOL_MANAGER_ID]
+    if branch == "Ikkalasi ham":
+        recipients = list(ADMIN_IDS)
+        if TORTKOL_MANAGER_ID:
+            recipients.append(TORTKOL_MANAGER_ID)
+        return recipients
+    return list(ADMIN_IDS)
 
 
 def _sheet_link() -> str:
@@ -133,8 +146,9 @@ async def notify_admins(bot: Bot, row_number, candidate: dict, ai_result: dict |
 
     warning_keyboard = _rescore_keyboard(row_number) if row_number and not ai_result else None
     sent_button_messages = []
+    recipients = _recipients_for(candidate.get("branch", ""))
 
-    for admin_id in ADMIN_IDS:
+    for admin_id in recipients:
         try:
             await bot.send_message(admin_id, summary_text, reply_markup=warning_keyboard)
 
@@ -163,7 +177,7 @@ async def notify_admins(bot: Bot, row_number, candidate: dict, ai_result: dict |
 
 @router.callback_query(F.data.startswith("dec:"))
 async def decide_candidate(callback: CallbackQuery):
-    if callback.from_user.id not in ADMIN_IDS:
+    if callback.from_user.id not in AUTHORIZED_IDS:
         await callback.answer("Sizda ruxsat yo'q", show_alert=True)
         return
 
@@ -265,7 +279,7 @@ async def noop(callback: CallbackQuery):
 
 @router.callback_query(F.data.startswith("rescore_yes:"))
 async def rescore_confirm_yes(callback: CallbackQuery):
-    if callback.from_user.id not in ADMIN_IDS:
+    if callback.from_user.id not in AUTHORIZED_IDS:
         await callback.answer("Sizda ruxsat yo'q", show_alert=True)
         return
 
@@ -289,7 +303,7 @@ async def rescore_confirm_no(callback: CallbackQuery):
 
 @router.callback_query(F.data.startswith("rescore:"))
 async def rescore_button(callback: CallbackQuery):
-    if callback.from_user.id not in ADMIN_IDS:
+    if callback.from_user.id not in AUTHORIZED_IDS:
         await callback.answer("Sizda ruxsat yo'q", show_alert=True)
         return
 
