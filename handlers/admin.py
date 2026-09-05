@@ -9,39 +9,38 @@ from aiogram.types import (
     InlineKeyboardMarkup,
     Message,
 )
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from config import ADMIN_IDS, SHEET_ID, TORTKOL_MANAGER_ID
+from db.models import Candidate, CandidateStatus
+from db.session import async_session
 from questions import MINOR_AGE_RANGE, MINOR_SHIFT_LABEL, POSITIONS
+from services.notify import STATUS_LABELS, TZ, process_decision
 from services.scoring import rescore_from_sheet
 from services.sheets import (
     TIMESTAMP_FORMAT,
     get_all_rows,
     get_candidate_row,
-    now_tashkent_str,
-    update_status,
 )
 
 logger = logging.getLogger(__name__)
 router = Router(name="admin")
 
-# row_number -> {"messages": [(admin_id, message_id), ...], "candidate_id": int, "candidate_name": str}
-_pending_decisions = {}
-
-STATUS_LABELS = {
-    "invited": "✅ Sinov kuniga taklif qilindi",
-    "reserve": "🟡 Zaxira ro'yxatiga qo'shildi",
-    "rejected": "❌ Rad etildi",
-}
-
-CANDIDATE_MESSAGES = {
-    "invited": "🎉 Tabriklaymiz, {name}! Sizni sinov kuniga taklif qilamiz. Tez orada administratorimiz siz bilan bog'lanadi.",
-    "reserve": "Rahmat, {name}! Arizangiz zaxira ro'yxatiga kiritildi. Bo'sh o'rin ochilsa birinchilardan bo'lib xabar beramiz.",
-    "rejected": "Rahmat, {name}! Afsuski, hozircha boshqa nomzodni tanladik. Arizangiz bazamizda saqlanadi.",
-}
-
-ACTION_TO_STATUS = {"invite": "invited", "reserve": "reserve", "reject": "rejected"}
-
 AUTHORIZED_IDS = set(ADMIN_IDS) | ({TORTKOL_MANAGER_ID} if TORTKOL_MANAGER_ID else set())
+
+# candidate_id -> [(admin_id, message_id), ...] — "Qaror qabul qiling:"
+# xabarlarini kim(lar)ga yuborilgani (bitta admin qaror qilsa, qolganlarnikini
+# ham yangilash uchun). Xotirada — bot qayta ishga tushsa tozalanadi, lekin
+# haqiqiy idempotentlik (qayta qaror qilib bo'lmasligi) Candidate.status
+# ustunida saqlanadi, shuning uchun funksional xavfsizlik yo'qolmaydi.
+_pending_messages: dict[int, list[tuple[int, int]]] = {}
+
+ACTION_TO_STATUS = {
+    "invite": CandidateStatus.invited,
+    "reserve": CandidateStatus.reserve,
+    "reject": CandidateStatus.rejected,
+}
 
 
 def _recipients_for(branch: str) -> list[int]:
@@ -104,13 +103,26 @@ def _build_summary_text(row_number, candidate: dict, ai_result: dict | None) -> 
     return "\n".join(lines)
 
 
-def _decision_keyboard(row_number) -> InlineKeyboardMarkup:
+# ===================== QAROR TUGMALARI (HR status moduli) =====================
+
+def _decision_keyboard(candidate_id: int) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
-                InlineKeyboardButton(text="✅ Sinov kuniga taklif", callback_data=f"dec:{row_number}:invite"),
-                InlineKeyboardButton(text="🟡 Zaxiraga", callback_data=f"dec:{row_number}:reserve"),
-                InlineKeyboardButton(text="❌ Rad etish", callback_data=f"dec:{row_number}:reject"),
+                InlineKeyboardButton(text="✅ Taklif", callback_data=f"cand:{candidate_id}:invite"),
+                InlineKeyboardButton(text="📋 Zahira", callback_data=f"cand:{candidate_id}:reserve"),
+                InlineKeyboardButton(text="❌ Rad", callback_data=f"cand:{candidate_id}:reject"),
+            ]
+        ]
+    )
+
+
+def _reject_confirm_keyboard(candidate_id: int) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(text="Ha, yubor", callback_data=f"cand_yes:{candidate_id}"),
+                InlineKeyboardButton(text="Bekor qilish", callback_data=f"cand_no:{candidate_id}"),
             ]
         ]
     )
@@ -140,9 +152,30 @@ def _rescore_confirm_keyboard(row_number) -> InlineKeyboardMarkup:
 
 
 async def notify_admins(bot: Bot, row_number, candidate: dict, ai_result: dict | None):
+    """Yangi nomzod haqida adminlarga xabar yuboradi. Shu bilan birga
+    Postgres'da candidates yozuvini yaratadi (HR status moduli uchun) —
+    Sheets'dagi to'liq anketa (row_number orqali) o'zgarishsiz qoladi."""
     summary_text = _build_summary_text(row_number, candidate, ai_result)
     if not row_number:
         summary_text += "\n\n⚠️ Sheets ga yozishda xato bo'ldi, qo'lda tekshiring."
+
+    candidate_db_id = None
+    try:
+        async with async_session() as session:
+            db_candidate = Candidate(
+                telegram_id=candidate["telegram_id"],
+                username=candidate.get("username") or None,
+                full_name=candidate["full_name"],
+                phone=candidate.get("phone") or None,
+                position=candidate.get("position") or None,
+                sheet_row=row_number,
+            )
+            session.add(db_candidate)
+            await session.commit()
+            await session.refresh(db_candidate)
+            candidate_db_id = db_candidate.id
+    except Exception:
+        logger.exception("Postgres'ga nomzod yozishda xato — qaror tugmalari ko'rsatilmaydi")
 
     warning_keyboard = _rescore_keyboard(row_number) if row_number and not ai_result else None
     sent_button_messages = []
@@ -157,61 +190,179 @@ async def notify_admins(bot: Bot, row_number, candidate: dict, ai_result: dict |
             if candidate.get("video_file_id"):
                 await bot.send_video_note(admin_id, candidate["video_file_id"])
 
-            if row_number:
+            if candidate_db_id:
                 msg = await bot.send_message(
                     admin_id,
                     "Qaror qabul qiling:",
-                    reply_markup=_decision_keyboard(row_number),
+                    reply_markup=_decision_keyboard(candidate_db_id),
                 )
                 sent_button_messages.append((admin_id, msg.message_id))
         except Exception:
             logger.exception(f"Adminga xabar yuborishda xato: {admin_id}")
 
-    if row_number:
-        _pending_decisions[row_number] = {
-            "messages": sent_button_messages,
-            "candidate_id": candidate["telegram_id"],
-            "candidate_name": candidate["full_name"],
-        }
+    if candidate_db_id:
+        _pending_messages[candidate_db_id] = sent_button_messages
 
 
-@router.callback_query(F.data.startswith("dec:"))
+def _decided_text(candidate: Candidate, admin_label: str, action: str, notify_result: str) -> str:
+    status_label = STATUS_LABELS.get(candidate.status, candidate.status.value)
+    header = f"{status_label} — {admin_label} tomonidan"
+
+    if action == "invite":
+        phone_line = f"📱 Telefon: <code>{candidate.phone}</code>" if candidate.phone else "📱 Telefon: —"
+        return (
+            f"{header}\n\n"
+            f"👤 {candidate.full_name}\n"
+            f"{phone_line}\n"
+            f"💬 Yozish uchun: <a href='tg://user?id={candidate.telegram_id}'>havola</a>\n\n"
+            f"<i>Xabar avtomatik yuborilmaydi — o'zingiz yozing.</i>"
+        )
+
+    if notify_result == "queued":
+        return f"{header}\n\n🕒 Xabar tunda (21:00–08:00) navbatga qo'yildi, ertalab 09:00 da avtomatik yuboriladi."
+    if notify_result == "sent":
+        return f"{header}\n\n✅ Nomzodga avtomatik xabar yuborildi."
+    if notify_result == "already_sent":
+        sent_at = candidate.notified_at.strftime("%d.%m.%Y %H:%M") if candidate.notified_at else "-"
+        return f"{header}\n\nℹ️ Bu nomzodga xabar allaqachon yuborilgan ({sent_at})."
+    if notify_result == "failed":
+        return (
+            f"{header}\n\n"
+            f"⚠️ Nomzodga xabar YUBORILMADI (botni bloklagan bo'lishi mumkin).\n"
+            f"Qo'lda bog'laning: <code>{candidate.phone or '—'}</code>"
+        )
+    return header
+
+
+async def _apply_decision(callback: CallbackQuery, session: AsyncSession, candidate: Candidate, action: str):
+    new_status = ACTION_TO_STATUS[action]
+    admin_label = f"@{callback.from_user.username}" if callback.from_user.username else str(callback.from_user.id)
+
+    notify_result = await process_decision(callback.bot, session, candidate, new_status, admin_label)
+    decided_text = _decided_text(candidate, admin_label, action, notify_result)
+
+    try:
+        await callback.message.edit_text(decided_text, parse_mode="HTML")
+    except Exception:
+        logger.exception("Admin xabarini yangilashda xato")
+
+    await callback.answer("Qaror saqlandi")
+
+    pending = _pending_messages.pop(candidate.id, [])
+    for admin_id, message_id in pending:
+        if (admin_id, message_id) == (callback.message.chat.id, callback.message.message_id):
+            continue
+        try:
+            await callback.bot.edit_message_text(
+                decided_text, chat_id=admin_id, message_id=message_id, parse_mode="HTML"
+            )
+        except Exception:
+            logger.exception("Boshqa admin xabarini yangilashda xato")
+
+
+@router.callback_query(F.data.startswith("cand:"))
 async def decide_candidate(callback: CallbackQuery):
     if callback.from_user.id not in AUTHORIZED_IDS:
         await callback.answer("Sizda ruxsat yo'q", show_alert=True)
         return
 
-    _, row_str, action = callback.data.split(":")
-    row_number = int(row_str)
+    _, cand_id_str, action = callback.data.split(":")
+    candidate_id = int(cand_id_str)
 
-    pending = _pending_decisions.get(row_number)
-    if not pending:
-        await callback.answer("Bu nomzod bo'yicha qaror allaqachon qabul qilingan", show_alert=True)
+    async with async_session() as session:
+        candidate = await session.get(Candidate, candidate_id)
+        if not candidate:
+            await callback.answer("Nomzod topilmadi", show_alert=True)
+            return
+        if candidate.status != CandidateStatus.new:
+            await callback.answer(
+                f"Bu nomzod bo'yicha qaror allaqachon qabul qilingan: "
+                f"{STATUS_LABELS.get(candidate.status, candidate.status.value)}",
+                show_alert=True,
+            )
+            return
+
+        if action == "reject":
+            await callback.answer()
+            try:
+                await callback.message.edit_text(
+                    f"❗ Nomzod: {candidate.full_name}\nRad xabari yuborilsinmi?",
+                    reply_markup=_reject_confirm_keyboard(candidate_id),
+                )
+            except Exception:
+                logger.exception("Rad tasdiqlash xabarini ko'rsatishda xato")
+            return
+
+        await _apply_decision(callback, session, candidate, action)
+
+
+@router.callback_query(F.data.startswith("cand_yes:"))
+async def confirm_reject(callback: CallbackQuery):
+    if callback.from_user.id not in AUTHORIZED_IDS:
+        await callback.answer("Sizda ruxsat yo'q", show_alert=True)
         return
 
-    status = ACTION_TO_STATUS[action]
-    decided_by = f"@{callback.from_user.username}" if callback.from_user.username else str(callback.from_user.id)
-    decided_at = now_tashkent_str()
+    candidate_id = int(callback.data.split(":")[1])
+    async with async_session() as session:
+        candidate = await session.get(Candidate, candidate_id)
+        if not candidate:
+            await callback.answer("Nomzod topilmadi", show_alert=True)
+            return
+        if candidate.status != CandidateStatus.new:
+            await callback.answer(
+                f"Bu nomzod bo'yicha qaror allaqachon qabul qilingan: "
+                f"{STATUS_LABELS.get(candidate.status, candidate.status.value)}",
+                show_alert=True,
+            )
+            return
+        await _apply_decision(callback, session, candidate, "reject")
 
-    del _pending_decisions[row_number]
 
-    await update_status(row_number, status, decided_by, decided_at)
-
-    decided_text = f"{STATUS_LABELS[status]} — {decided_by} tomonidan"
-    for admin_id, message_id in pending["messages"]:
-        try:
-            await callback.bot.edit_message_text(decided_text, chat_id=admin_id, message_id=message_id)
-        except Exception:
-            logger.exception("Admin xabarini yangilashda xato")
-
-    await callback.answer("Qaror saqlandi")
-
+@router.callback_query(F.data.startswith("cand_no:"))
+async def cancel_reject(callback: CallbackQuery):
+    candidate_id = int(callback.data.split(":")[1])
+    await callback.answer("Bekor qilindi")
     try:
-        text = CANDIDATE_MESSAGES[status].format(name=pending["candidate_name"])
-        await callback.bot.send_message(pending["candidate_id"], text)
+        await callback.message.edit_text(
+            "Qaror qabul qiling:",
+            reply_markup=_decision_keyboard(candidate_id),
+        )
     except Exception:
-        logger.exception("Nomzodga xabar yuborishda xato")
+        logger.exception("Bekor qilishda tugmani tiklashda xato")
 
+
+@router.message(Command("zahira"))
+async def zahira_list(message: Message):
+    if message.from_user.id not in ADMIN_IDS:
+        return
+
+    now_naive = datetime.now(TZ).replace(tzinfo=None)
+    async with async_session() as session:
+        result = await session.execute(
+            select(Candidate)
+            .where(Candidate.status == CandidateStatus.reserve)
+            .where(Candidate.reserve_until.isnot(None))
+            .where(Candidate.reserve_until > now_naive)
+            .order_by(Candidate.reserve_until)
+        )
+        candidates = result.scalars().all()
+
+    if not candidates:
+        await message.answer("📋 Zahira ro'yxati bo'sh.")
+        return
+
+    lines = ["📋 <b>Zahira nomzodlar</b> (muddati tugamagan):", ""]
+    for c in candidates:
+        position_label = POSITIONS.get(c.position, c.position or "-")
+        decided = c.status_changed_at.strftime("%d.%m.%Y") if c.status_changed_at else "-"
+        lines.append(
+            f"👤 {c.full_name} | 💼 {position_label}\n"
+            f"📅 {decided} | <a href='tg://user?id={c.telegram_id}'>Yozish</a>"
+        )
+    await message.answer("\n\n".join(lines), parse_mode="HTML")
+
+
+# ===================== QAYTA BALLASH (AI, o'zgarishsiz) =====================
 
 DECIDED_STATUSES = {"invited", "reserve", "rejected"}
 
@@ -244,18 +395,11 @@ async def _perform_rescore(bot: Bot, chat_id: int, message_id: int, row_number: 
         status = row.get("status") or "new"
 
         if status in DECIDED_STATUSES:
-            text += f"\n\n📌 Holat: {STATUS_LABELS.get(status, status)}"
+            labels = {"invited": "✅ Taklif", "reserve": "📋 Zahira", "rejected": "❌ Rad"}
+            text += f"\n\n📌 Holat: {labels.get(status, status)}"
             keyboard = None
         else:
-            keyboard = _decision_keyboard(row_number)
-            telegram_id = row.get("telegram_id")
-            pending = _pending_decisions.setdefault(row_number, {
-                "messages": [],
-                "candidate_id": int(telegram_id) if telegram_id else None,
-                "candidate_name": row.get("full_name", ""),
-            })
-            if (chat_id, message_id) not in pending["messages"]:
-                pending["messages"].append((chat_id, message_id))
+            keyboard = None  # eski row_number asosidagi tugmalar endi ishlatilmaydi
 
         try:
             await bot.edit_message_text(text, chat_id=chat_id, message_id=message_id, reply_markup=keyboard)
@@ -344,9 +488,10 @@ async def rescore_command(message: Message, command: CommandObject):
     status = row.get("status") or "new"
 
     if status in DECIDED_STATUSES:
+        labels = {"invited": "✅ Taklif", "reserve": "📋 Zahira", "rejected": "❌ Rad"}
         await message.answer(
             f"Nomzod #{row_number} ({row.get('full_name', '-')}) bo'yicha qaror allaqachon qabul qilingan: "
-            f"{STATUS_LABELS.get(status, status)}.\nBaribir qayta ballansinmi?",
+            f"{labels.get(status, status)}.\nBaribir qayta ballansinmi?",
             reply_markup=_rescore_confirm_keyboard(row_number),
         )
         return

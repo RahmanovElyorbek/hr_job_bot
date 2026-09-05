@@ -12,9 +12,19 @@ services:
         sync: false
       - key: ADMIN_IDS
         sync: false
+      - key: TORTKOL_MANAGER_ID
+        sync: false
       - key: SHEET_ID
         sync: false
       - key: ANTHROPIC_API_KEY
         sync: false
       - key: GOOGLE_CREDENTIALS_JSON
         sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: LOG_CHANNEL_ID
+        sync: false
+      - key: NOTIFY_MODE
+        value: real
+      - key: TIMEZONE
+        value: Asia/Tashkent
