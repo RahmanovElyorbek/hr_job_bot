@@ -34,6 +34,7 @@ HEADERS = [
     "ai_percent", "ai_verdict", "ai_summary", "ai_red_flags",
     "status", "decided_by", "decided_at",
     "G1", "G2", "G3", "G4", "G5",
+    "address",
 ]
 
 _worksheet = None

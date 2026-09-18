@@ -85,8 +85,20 @@ async def choose_position(callback: CallbackQuery, state: FSMContext):
     await callback.message.edit_reply_markup(reply_markup=None)
 
     await state.update_data(position=position_key)
-    await callback.message.answer("Telefon raqamingizni yuboring:", reply_markup=_phone_keyboard())
+    await callback.message.answer("Yashash manzilingizni yozing (shahar/tuman, mahalla/ko'cha):")
+    await state.set_state(Interview.address)
+
+
+@router.message(Interview.address, F.text)
+async def get_address(message: Message, state: FSMContext):
+    await state.update_data(address=message.text)
+    await message.answer("Telefon raqamingizni yuboring:", reply_markup=_phone_keyboard())
     await state.set_state(Interview.phone)
+
+
+@router.message(Interview.address)
+async def address_invalid(message: Message):
+    await message.answer("Iltimos, manzilingizni matn ko'rinishida yozing.")
 
 
 @router.message(Interview.phone, F.contact)
@@ -297,6 +309,7 @@ async def _process_application(bot, candidate: dict):
         "username": candidate["username"],
         "full_name": candidate["full_name"],
         "phone": candidate.get("phone", ""),
+        "address": candidate.get("address", ""),
         "position": position,
         "branch": candidate.get("branch", ""),
         "age_range": candidate.get("age_range", ""),

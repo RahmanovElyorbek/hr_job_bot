@@ -70,6 +70,7 @@ def _build_summary_text(row_number, candidate: dict, ai_result: dict | None) -> 
         f"🆕 YANGI NOMZOD #{row_number if row_number else '?'}",
         "",
         f"👤 {candidate['full_name']} | 📱 {contact}",
+        f"🏠 Manzil: {candidate.get('address', '-')}",
         f"💼 Lavozim: {position_label} | 🏪 Filial: {candidate.get('branch', '-')}",
         f"📅 Boshlashi mumkin: {candidate.get('start_date', '-')}",
     ]
@@ -373,6 +374,7 @@ def _row_to_candidate(row: dict) -> dict:
         "full_name": row.get("full_name", ""),
         "username": row.get("username", ""),
         "phone": row.get("phone", ""),
+        "address": row.get("address", ""),
         "branch": row.get("branch", ""),
         "start_date": row.get("start_date", ""),
         "telegram_id": row.get("telegram_id", ""),
