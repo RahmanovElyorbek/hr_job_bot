@@ -1,6 +1,7 @@
 import asyncio
 import json
 import logging
+import random
 import time
 
 from aiogram import F, Router
@@ -64,6 +65,15 @@ async def _ask_timed(message: Message, state: FSMContext, text: str):
     await message.answer(text)
 
 
+async def _ask_situational(message: Message, state: FSMContext, question: dict):
+    text = random.choice(question["variants"])
+    data = await state.get_data()
+    asked_questions = data.get("asked_questions", {})
+    asked_questions[question["id"]] = text
+    await state.update_data(asked_questions=asked_questions, asked_at=time.time())
+    await message.answer(text)
+
+
 async def _record_answer(state: FSMContext, question_id: str, text: str):
     data = await state.get_data()
     elapsed = round(time.time() - data.get("asked_at", time.time()), 1)
@@ -123,7 +133,7 @@ async def _start_situations(message: Message, state: FSMContext):
     data = await state.get_data()
     position = data["position"]
     await state.update_data(sit_index=0)
-    await _ask_timed(message, state, SITUATIONS[position][0]["text"])
+    await _ask_situational(message, state, SITUATIONS[position][0])
     await state.set_state(Interview.situations)
 
 
@@ -141,7 +151,7 @@ async def situations_answer(message: Message, state: FSMContext):
     sit_index += 1
     if sit_index < len(situations):
         await state.update_data(sit_index=sit_index)
-        await _ask_timed(message, state, situations[sit_index]["text"])
+        await _ask_situational(message, state, situations[sit_index])
         return
 
     if position == "omborchi":
@@ -286,9 +296,11 @@ async def _process_application(bot, candidate: dict):
     position = candidate["position"]
     answers = candidate.get("answers", {})
     answer_times = candidate.get("answer_times", {})
+    asked_questions = candidate.get("asked_questions", {})
 
     ai_result, _ = await score_candidate(
-        POSITIONS[position], build_scoring_input(position, answers, answer_times)
+        POSITIONS[position],
+        build_scoring_input(position, answers, answer_times, asked_questions),
     )
 
     row = {
@@ -307,6 +319,7 @@ async def _process_application(bot, candidate: dict):
         "O_health": candidate.get("o_health", ""),
         **{q["id"]: answers.get(q["id"], "") for q in BLOCK4_QUESTIONS},
         "answer_times": json.dumps(answer_times, ensure_ascii=False),
+        "asked_questions": json.dumps(asked_questions, ensure_ascii=False),
         "voice_file_id": candidate.get("voice_file_id", ""),
         "video_file_id": candidate.get("video_file_id", ""),
         "ai_percent": ai_result.get("total_percent", "") if ai_result else "",

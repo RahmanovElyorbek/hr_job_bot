@@ -117,25 +117,32 @@ def _parse_ai_response(raw_text: str) -> dict:
             raise
 
 
-def build_scoring_input(position: str, answers: dict, answer_times: dict) -> list[dict]:
+def _question_text(q: dict, asked_questions: dict) -> str:
+    return asked_questions.get(q["id"]) or q.get("text") or (q["variants"][0] if "variants" in q else "")
+
+
+def build_scoring_input(
+    position: str, answers: dict, answer_times: dict, asked_questions: dict | None = None
+) -> list[dict]:
+    asked_questions = asked_questions or {}
     items = []
     for q in BLOCK1_QUESTIONS:
         if q["id"] in answers:
             items.append({
-                "id": q["id"], "text": q["text"], "measures": q.get("measures", ""),
+                "id": q["id"], "text": _question_text(q, asked_questions), "measures": q.get("measures", ""),
                 "answer": answers[q["id"]], "elapsed": answer_times.get(q["id"]),
             })
     for q in SITUATIONS[position]:
         if q["id"] in answers:
             items.append({
-                "id": q["id"], "text": q["text"], "measures": q.get("measures", ""),
+                "id": q["id"], "text": _question_text(q, asked_questions), "measures": q.get("measures", ""),
                 "answer": answers[q["id"]], "elapsed": answer_times.get(q["id"]),
                 "weight": 2,
             })
     for q in BLOCK4_QUESTIONS:
         if q["id"] in answers:
             items.append({
-                "id": q["id"], "text": q["text"], "measures": q.get("measures", ""),
+                "id": q["id"], "text": _question_text(q, asked_questions), "measures": q.get("measures", ""),
                 "answer": answers[q["id"]], "elapsed": answer_times.get(q["id"]),
             })
     return items
@@ -185,13 +192,18 @@ async def rescore_from_sheet(row_number: int) -> tuple[dict | None, str | None]:
     except json.JSONDecodeError:
         answer_times = {}
 
+    try:
+        asked_questions = json.loads(row.get("asked_questions") or "{}")
+    except json.JSONDecodeError:
+        asked_questions = {}
+
     answers = {
         q["id"]: row[q["id"]]
         for q in BLOCK1_QUESTIONS + SITUATIONS[position] + BLOCK4_QUESTIONS
         if row.get(q["id"])
     }
 
-    scoring_input = build_scoring_input(position, answers, answer_times)
+    scoring_input = build_scoring_input(position, answers, answer_times, asked_questions)
     if not scoring_input:
         return None, "Sheets da javoblar topilmadi"
 

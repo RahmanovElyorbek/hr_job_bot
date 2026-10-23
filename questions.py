@@ -53,31 +53,51 @@ SITUATIONS = {
     "kassir": [
         {
             "id": "K1",
-            "text": "Smena oxirida kassada 20 000 so'm kam chiqdi. Aniq qadamma-qadam nima qilasiz?",
+            "variants": [
+                "Smena oxirida kassada 20 000 so'm kam chiqdi. Aniq qadamma-qadam nima qilasiz?",
+                "Kunlik hisobotni yopayotganda kassada 20 000 so'm yetishmayotganini payqadingiz. Qadamma-qadam nima qilasiz?",
+                "Ish kuni oxirida pul va cheklarni solishtirsangiz, 20 000 so'm kam chiqdi. Birinchi navbatda nima qilasiz, keyin-chi?",
+            ],
             "measures": "Halollik, mas'uliyat. \"Yashiraman/o'zim qo'shib qo'yaman\" = qizil bayroq. To'g'ri yo'nalish: qayta sanash → rahbarga xabar",
             "auto_reject": False,
         },
         {
             "id": "K2",
-            "text": "Navbat uzun, mijozlardan biri \"tezroq bo'ling!\" deb baqiryapti. Birinchi aytadigan gapingizni aynan yozing.",
+            "variants": [
+                "Navbat uzun, mijozlardan biri \"tezroq bo'ling!\" deb baqiryapti. Birinchi aytadigan gapingizni aynan yozing.",
+                "Kassa oldida navbat uzayib ketdi, asabiylashgan mijoz ovozini ko'tarib \"nega bunchalik sekin ishlaysiz?!\" deb achchiqlanmoqda. Unga aynan nima deb javob berasiz?",
+                "Band vaqtda navbatda turgan mijoz boshqalarga eshittirib \"xizmat juda sust!\" deb norozilik bildirdi. Birinchi aytadigan gapingizni aynan shu yerda yozing.",
+            ],
             "measures": "Bosim ostida xotirjamlik, muloqot",
             "auto_reject": False,
         },
         {
             "id": "K3",
-            "text": "Mijoz 50 000 so'mlik kupyura berdi, siz qaytim berdingiz, u \"men 100 ming berdim\" deyapti. Nima qilasiz?",
+            "variants": [
+                "Mijoz 50 000 so'mlik kupyura berdi, siz qaytim berdingiz, u \"men 100 ming berdim\" deyapti. Nima qilasiz?",
+                "Hisob-kitobdan so'ng mijoz \"men sizga 100 ming so'm berdim, qaytimim noto'g'ri\" deb da'vo qilmoqda, siz esa 50 minglik olganingizga ishonchingiz komil. Qanday harakat qilasiz?",
+                "Mijoz pul to'lagandan keyin qaytim kam berilganini aytib, aslida 100 minglik berganini da'vo qilyapti. Siz 50 minglik qabul qilganingizni aniq eslaysiz. Nima qilasiz?",
+            ],
             "measures": "Protsedura bilishi, nizoni to'g'ri hal qilish. To'g'ri yo'nalish: xotirjam, kassani rahbar ishtirokida tekshirish, kamera",
             "auto_reject": False,
         },
         {
             "id": "K4",
-            "text": "Yaqin tanishing keldi va \"menga chegirma qilib o'tkazib yubor\" deyapti. Javobingiz?",
+            "variants": [
+                "Yaqin tanishing keldi va \"menga chegirma qilib o'tkazib yubor\" deyapti. Javobingiz?",
+                "Do'stingiz kassangizga keldi va \"mahsulotlarni to'liq to'lovsiz o'tkazib yubor, hech kim bilmaydi\" deb so'ramoqda. Qanday javob berasiz?",
+                "Qarindoshingiz xarid qilib, \"menga pulini olmay, bepul o'tkazib yubor\" deb iltimos qilyapti. Javobingiz nima bo'ladi?",
+            ],
             "measures": "Halollik, qoidaga sodiqlik. Har qanday \"o'tkazib yuboraman\" = avtomatik rad",
             "auto_reject": True,
         },
         {
             "id": "K5",
-            "text": "Mijoz faqat non va sut oldi. Chekni oshirish uchun kassada turib nima taklif qilgan bo'lardingiz?",
+            "variants": [
+                "Mijoz faqat non va sut oldi. Chekni oshirish uchun kassada turib nima taklif qilgan bo'lardingiz?",
+                "Mijoz savatida faqat ikkita arzon mahsulot bor — non va sut. Kassada turib, chekni ko'paytirish uchun unga nima taklif qilgan bo'lardingiz?",
+                "Mijoz kassaga faqat non va sut bilan keldi. Sotuvni oshirish uchun shu yerda unga qanday qo'shimcha taklif bergan bo'lardingiz?",
+            ],
             "measures": "Sotuv instinkti (o'rtacha chek +30% strategiyasiga bog'lanadi)",
             "auto_reject": False,
         },
@@ -85,31 +105,51 @@ SITUATIONS = {
     "sotuvchi": [
         {
             "id": "S1",
-            "text": "Mijoz baqiryapti: \"Sut muddati o'tgan ekan, pulimni qaytaring!\" Birinchi gapingizni aynan yozing.",
+            "variants": [
+                "Mijoz baqiryapti: \"Sut muddati o'tgan ekan, pulimni qaytaring!\" Birinchi gapingizni aynan yozing.",
+                "Mijoz qo'lida mahsulot bilan kelib, ovozini ko'tarib \"bu yogurtning muddati o'tib ketibdi, pulimni darhol qaytaring!\" deb talab qilmoqda. Unga aynan nima deysiz?",
+                "G'azablangan mijoz \"siz menga muddati o'tgan mahsulot sotdingiz, pulimni qaytaring!\" deb zalda baqirmoqda. Birinchi aytadigan gapingizni aynan yozing.",
+            ],
             "measures": "Nizo boshqaruvi, empatiya",
             "auto_reject": False,
         },
         {
             "id": "S2",
-            "text": "Hamkasbingiz peshtaxtadan mahsulot olib cho'ntagiga solganini ko'rdingiz. Nima qilasiz?",
+            "variants": [
+                "Hamkasbingiz peshtaxtadan mahsulot olib cho'ntagiga solganini ko'rdingiz. Nima qilasiz?",
+                "Ish vaqtida hamkasbingiz javondan mahsulot olib, uni to'lovsiz sumkasiga solib qo'yganini ko'rib qoldingiz. Nima qilasiz?",
+                "Omborda hamkasbingiz mahsulotni yashirincha o'ziga olayotganini ko'rdingiz. Shu holatda nima qilasiz?",
+            ],
             "measures": "Halollik. \"Hech nima qilmayman\" = avtomatik rad. To'g'ri: rahbarga xabar",
             "auto_reject": True,
         },
         {
             "id": "S3",
-            "text": "Mijoz sizdan mahsulot haqida so'radi, siz bilmaysiz. Aniq nima qilasiz?",
+            "variants": [
+                "Mijoz sizdan mahsulot haqida so'radi, siz bilmaysiz. Aniq nima qilasiz?",
+                "Mijoz sizdan bir mahsulotning tarkibi haqida savol berdi, lekin javobini bilmaysiz. Aniq qanday harakat qilasiz?",
+                "Mijoz noma'lum bir mahsulot haqida batafsil ma'lumot so'radi, siz esa javobini topa olmayapsiz. Shu vaziyatda aniq nima qilasiz?",
+            ],
             "measures": "Rostgo'ylik + tashabbus. \"Bilmayman deb ketaman\" = past ball; \"bilib kelaman / biladigan hamkasbni chaqiraman\" = yuqori",
             "auto_reject": False,
         },
         {
             "id": "S4",
-            "text": "Zalda navbat uzayib ketdi, kassir bitta, mijozlar norozi. Siz zaldasiz. Nima qilasiz?",
+            "variants": [
+                "Zalda navbat uzayib ketdi, kassir bitta, mijozlar norozi. Siz zaldasiz. Nima qilasiz?",
+                "Kassada faqat bitta kassir ishlayapti, navbat uzunlashib, mijozlar g'ijinmoqda. O'zingiz zalda turibsiz. Qanday harakat qilasiz?",
+                "Band soatda kassada navbat uzayib, mijozlar noroziligini bildira boshladi, kassir esa yolg'iz. Siz zalda ekansiz, nima qilasiz?",
+            ],
             "measures": "Tashabbus, jamoaviylik",
             "auto_reject": False,
         },
         {
             "id": "S5",
-            "text": "Mijoz arzon mahsulot izlayapti. Uni xafa qilmasdan qimmatroq lekin sifatliroq variantni qanday taklif qilasiz? So'zlaringizni yozing.",
+            "variants": [
+                "Mijoz arzon mahsulot izlayapti. Uni xafa qilmasdan qimmatroq lekin sifatliroq variantni qanday taklif qilasiz? So'zlaringizni yozing.",
+                "Mijoz eng arzon mahsulotni izlayapti. Uni ranjitmasdan, sifatliroq va qimmatroq mahsulotni qanday taklif qilgan bo'lardingiz? Aynan gaplaringizni yozing.",
+                "Mijoz byudjeti chegaralanganini aytib, arzon narx so'ramoqda. Uni xafa qilmay, sifatliroq variantni qanday taklif qilasiz? So'zlaringizni aynan yozing.",
+            ],
             "measures": "Sotuv ko'nikmasi, upsell",
             "auto_reject": False,
         },
@@ -117,31 +157,51 @@ SITUATIONS = {
     "omborchi": [
         {
             "id": "O1",
-            "text": "Yangi partiya keldi, nakladnoyda 100 dona, sanasangiz 96 dona chiqdi. Qadamma-qadam nima qilasiz?",
+            "variants": [
+                "Yangi partiya keldi, nakladnoyda 100 dona, sanasangiz 96 dona chiqdi. Qadamma-qadam nima qilasiz?",
+                "Yetkazib berilgan tovarni qabul qilayotganda hujjatda 100 dona ko'rsatilgan bo'lsa-da, sanab chiqqaningizda atigi 96 dona chiqdi. Qadamma-qadam nima qilasiz?",
+                "Ta'minotchidan kelgan yukni tekshirayotganda, hujjatda 100 dona ko'rsatilgan bo'lsa-da, real sanoqda 96 ta chiqqanini aniqladingiz. Harakatlaringizni qadamma-qadam tushuntiring.",
+            ],
             "measures": "Aniqlik, protsedura. To'g'ri: qayta sanash → hujjatlashtirish → rahbar/ta'minotchiga xabar",
             "auto_reject": False,
         },
         {
             "id": "O2",
-            "text": "Omborda muddati tugashiga 5 kun qolgan mahsulot katta partiyasini ko'rdingiz. Nima qilasiz?",
+            "variants": [
+                "Omborda muddati tugashiga 5 kun qolgan mahsulot katta partiyasini ko'rdingiz. Nima qilasiz?",
+                "Omborni tekshirayotganda muddati yaqin orada (5 kun ichida) tugaydigan katta hajmdagi mahsulotni topdingiz. Nima qilasiz?",
+                "Inventarizatsiya paytida yaroqlilik muddati 5 kundan keyin tugaydigan ko'p miqdordagi mahsulotga duch keldingiz. Qanday harakat qilasiz?",
+            ],
             "measures": "Proaktivlik, FIFO tushunchasi. To'g'ri: rahbarga xabar, zalga birinchi chiqarish, aksiya taklifi",
             "auto_reject": False,
         },
         {
             "id": "O3",
-            "text": "Zaldan \"mahsulot tugadi, tez olib keling\" deyishdi, ayni paytda yangi mashina tushirilyapti. Qaysi birini qilasiz, nega?",
+            "variants": [
+                "Zaldan \"mahsulot tugadi, tez olib keling\" deyishdi, ayni paytda yangi mashina tushirilyapti. Qaysi birini qilasiz, nega?",
+                "Siz yangi kelgan mashinani tushirayotgan paytingizda, zaldan shoshilinch ravishda bir mahsulot tugaganini va tezda olib kelish kerakligini aytishdi. Qaysi vazifani birinchi bajarasiz va nega?",
+                "Bir vaqtning o'zida ham yuk mashinasini bo'shatish, ham zalga shoshilinch mahsulot olib chiqish kerak bo'lib qoldi. Qaysi birini ustuvor qilasiz va buning sababini tushuntiring.",
+            ],
             "measures": "Ustuvorlik belgilash",
             "auto_reject": False,
         },
         {
             "id": "O4",
-            "text": "Hamkasbingiz omborga begona odamni olib kirdi. Nima qilasiz?",
+            "variants": [
+                "Hamkasbingiz omborga begona odamni olib kirdi. Nima qilasiz?",
+                "Ish vaqtida hamkasbingiz ruxsatsiz begona shaxsni ombor hududiga kiritganini ko'rdingiz. Nima qilasiz?",
+                "Omborda ishlayotganingizda, hamkasbingiz tanimagan odamni ichkariga olib kirganini payqadingiz. Qanday harakat qilasiz?",
+            ],
             "measures": "Xavfsizlik, qoidaga sodiqlik",
             "auto_reject": False,
         },
         {
             "id": "O5",
-            "text": "Og'ir yuk tushirish paytida belingiz og'rib qoldi, smena tugashiga 3 soat bor. Nima qilasiz?",
+            "variants": [
+                "Og'ir yuk tushirish paytida belingiz og'rib qoldi, smena tugashiga 3 soat bor. Nima qilasiz?",
+                "Yuk tashish jarayonida belingizda kuchli og'riq paydo bo'ldi, smenaning tugashiga esa yana 3 soat qolgan. Nima qilasiz?",
+                "Og'ir qutilarni ko'tarayotganda belingiz jiddiy og'riy boshladi, ish vaqti tugashiga 3 soat bor. Shu holatda nima qilasiz?",
+            ],
             "measures": "Rostgo'ylik, o'zini asrash. \"Indamay ishlayveraman\" ham, \"tashlab ketaman\" ham past ball; to'g'ri: rahbarga aytish",
             "auto_reject": False,
         },
@@ -149,31 +209,51 @@ SITUATIONS = {
     "farrosh": [
         {
             "id": "F1",
-            "text": "Zal o'rtasida mijoz shisha idishni tushirib yubordi, atrofda odam ko'p. Qadamma-qadam nima qilasiz?",
+            "variants": [
+                "Zal o'rtasida mijoz shisha idishni tushirib yubordi, atrofda odam ko'p. Qadamma-qadam nima qilasiz?",
+                "Savdo zalining markazida bir mijoz shisha bankani tushirib, u sinib ketdi, atrofda ko'plab odamlar yuribdi. Qadamma-qadam nima qilasiz?",
+                "Mijozlar ko'p bo'lgan zalda kimdir shishali mahsulotni qo'lidan tushirib yubordi va u chil-chil bo'ldi. Harakatlaringizni qadamma-qadam tushuntiring.",
+            ],
             "measures": "Xavfsizlik tushunchasi. To'g'ri: avval odamlarni ogohlantirish/to'sish, keyin tozalash",
             "auto_reject": False,
         },
         {
             "id": "F2",
-            "text": "Siz endigina yuvgan joydan yana loy oyoq izlari qoldi. Ichingizda nima his qilasiz va nima qilasiz?",
+            "variants": [
+                "Siz endigina yuvgan joydan yana loy oyoq izlari qoldi. Ichingizda nima his qilasiz va nima qilasiz?",
+                "Hozirgina tozalab bo'lgan polingizga darhol loy oyoq izlari tushib qoldi. Shu paytda ichingizda nima kechadi va nima qilasiz?",
+                "Siz yuvib-tozalagan joy orqasidan darrov iflos qadam izlari paydo bo'ldi. O'zingizni qanday his qilasiz va keyingi harakatingiz qanday bo'ladi?",
+            ],
             "measures": "Fe'l, sabr. Norozilik bildirish = qizil bayroq",
             "auto_reject": False,
         },
         {
             "id": "F3",
-            "text": "Tozalash paytida javon ostidan pul (50 000 so'm) topib oldingiz. Nima qilasiz?",
+            "variants": [
+                "Tozalash paytida javon ostidan pul (50 000 so'm) topib oldingiz. Nima qilasiz?",
+                "Zalni tozalayotganingizda, peshtaxta ostidan 50 000 so'mlik pul topib oldingiz. Nima qilasiz?",
+                "Tozalash jarayonida polda yotgan 50 000 so'mni ko'rib qoldingiz, atrofda hech kim yo'q. Nima qilasiz?",
+            ],
             "measures": "Halollik. \"O'zimga olaman\" = avtomatik rad",
             "auto_reject": True,
         },
         {
             "id": "F4",
-            "text": "Ish jadvalingizdagi hudud tugadi, smena tugashiga 1 soat bor. Nima qilasiz?",
+            "variants": [
+                "Ish jadvalingizdagi hudud tugadi, smena tugashiga 1 soat bor. Nima qilasiz?",
+                "O'zingizga belgilangan tozalash hududini tugatdingiz, ammo smenangiz tugashiga yana 1 soat qolgan. Shu vaqtda nima qilasiz?",
+                "Kunlik vazifangizdagi barcha ishni erta bajarib bo'ldingiz, ish vaqtining tugashiga esa 1 soat bor. Nima qilasiz?",
+            ],
             "measures": "Mehnatsevarlik, tashabbus",
             "auto_reject": False,
         },
         {
             "id": "F5",
-            "text": "Mijoz sizdan \"guruch qayerda?\" deb so'radi. Javobingiz?",
+            "variants": [
+                "Mijoz sizdan \"guruch qayerda?\" deb so'radi. Javobingiz?",
+                "Zalda tozalash ishlarini bajarayotganingizda, mijoz kelib \"guruch qayerda turibdi?\" deb so'ramoqda. Qanday javob berasiz?",
+                "Siz ishlab turgan paytingizda mijoz yondashib, \"guruchni qayerdan topsam bo'ladi?\" deb so'radi. Javobingiz nima bo'ladi?",
+            ],
             "measures": "Mijozga munosabat — farrosh ham do'kon yuzi. \"Bilmayman, men farroshman\" = past ball",
             "auto_reject": False,
         },
@@ -181,31 +261,51 @@ SITUATIONS = {
     "qoriqchi": [
         {
             "id": "G1",
-            "text": "Chiqish eshigidagi signalizatsiya ishlab ketdi, mijoz \"men hech narsa olmadim\" deb ketishga urinmoqda. Aniq qadamma-qadam nima qilasiz?",
+            "variants": [
+                "Chiqish eshigidagi signalizatsiya ishlab ketdi, mijoz \"men hech narsa olmadim\" deb ketishga urinmoqda. Aniq qadamma-qadam nima qilasiz?",
+                "Chiqishda magnit darvoza signal berdi, mijoz esa \"men to'lovsiz hech narsa olmaganman\" deb tezda chiqib ketmoqchi. Qadamma-qadam qanday harakat qilasiz?",
+                "Do'kondan chiqayotgan mijozda xavfsizlik darvozasi signal berdi, u esa \"bu xato, men hech narsa olmaganman\" deb da'vo qilib ketishga shoshilmoqda. Aniq nima qilasiz?",
+            ],
             "measures": "Protsedura bilishi, nizoni to'g'ri hal qilish. To'g'ri yo'nalish: xushmuomala to'xtatish, ayblamaslik, rahbarga xabar",
             "auto_reject": False,
         },
         {
             "id": "G2",
-            "text": "Tungi smenada tanish do'stingiz \"faqat besh daqiqaga kirib chiqaman\" deb yopiq do'konga kiritishni so'ramoqda. Javobingiz?",
+            "variants": [
+                "Tungi smenada tanish do'stingiz \"faqat besh daqiqaga kirib chiqaman\" deb yopiq do'konga kiritishni so'ramoqda. Javobingiz?",
+                "Kechki/tungi smenada yaqin tanishingiz kelib, \"do'kon yopiq bo'lsa ham meni besh daqiqaga kiritib yubor\" deb iltimos qilmoqda. Javobingiz nima bo'ladi?",
+                "Ish vaqtidan tashqari, do'stingiz yopiq do'konga \"tez kirib chiqaman, hech kim bilmaydi\" deb kirishni so'ramoqda. Qanday javob berasiz?",
+            ],
             "measures": "Halollik, qoidaga sodiqlik. Har qanday \"kiritib yuboraman\" = avtomatik rad",
             "auto_reject": True,
         },
         {
             "id": "G3",
-            "text": "Hamkasbingiz omborda mahsulot o'g'irlayotganini ko'rdingiz. Nima qilasiz?",
+            "variants": [
+                "Hamkasbingiz omborda mahsulot o'g'irlayotganini ko'rdingiz. Nima qilasiz?",
+                "Kuzatuv paytida hamkasbingizning omborda mahsulotni yashirincha olib chiqib ketayotganini ko'rib qoldingiz. Nima qilasiz?",
+                "Smenangiz davomida hamkasbingiz ombordan ruxsatsiz mahsulot olayotganini payqadingiz. Qanday harakat qilasiz?",
+            ],
             "measures": "Halollik. \"Hech nima qilmayman\" = avtomatik rad. To'g'ri: rahbarga xabar",
             "auto_reject": True,
         },
         {
             "id": "G4",
-            "text": "Ikki mijoz o'rtasida janjal boshlanib, ovoz balandlashdi, atrofda bolalar bor. Qadamma-qadam nima qilasiz?",
+            "variants": [
+                "Ikki mijoz o'rtasida janjal boshlanib, ovoz balandlashdi, atrofda bolalar bor. Qadamma-qadam nima qilasiz?",
+                "Zalda ikkita mijoz o'rtasida tortishuv chiqib, ovozlari baland ko'tarildi, yaqin atrofda bolali oilalar ham bor. Qadamma-qadam qanday harakat qilasiz?",
+                "Navbat atrofida ikki mijoz orasida bahs kuchayib, janjalga aylanmoqda, yonida bolalar turibdi. Nima qilishingizni qadamma-qadam tushuntiring.",
+            ],
             "measures": "Bosim ostida xotirjamlik, xavfsizlikni ta'minlash",
             "auto_reject": False,
         },
         {
             "id": "G5",
-            "text": "Smena tugashiga 10 daqiqa qolganda yong'in signalizatsiyasi ishga tushdi. Nima qilasiz?",
+            "variants": [
+                "Smena tugashiga 10 daqiqa qolganda yong'in signalizatsiyasi ishga tushdi. Nima qilasiz?",
+                "Ish kuningiz tugashiga atigi 10 daqiqa qolganda, to'satdan yong'in signalizatsiyasi ovoz bera boshladi. Nima qilasiz?",
+                "Smenangiz yakunlanishiga 10 daqiqa qolgan paytda yong'in ogohlantiruvchi signali ishga tushdi. Qanday harakat qilasiz?",
+            ],
             "measures": "Favqulodda vaziyatga tayyorlik, mas'uliyat",
             "auto_reject": False,
         },
