@@ -12,6 +12,7 @@ class Interview(StatesGroup):
 
     # Lavozim va aloqa
     position = State()
+    address = State()
     phone = State()
 
     # Blok 1 — umumiy faktlar
