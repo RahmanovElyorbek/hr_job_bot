@@ -31,7 +31,17 @@ def _normalize_database_url(url: str) -> str:
     return url
 
 
-engine = create_async_engine(_normalize_database_url(DATABASE_URL), pool_size=5, max_overflow=2)
+engine = create_async_engine(
+    _normalize_database_url(DATABASE_URL),
+    pool_size=5,
+    max_overflow=2,
+    # Supabase (va boshqa) pooled connection PgBouncer orqali "transaction"
+    # rejimida ishlaydi — u asyncpg'ning serverda nomlangan prepared
+    # statement keshini qo'llab-quvvatlamaydi, shuning uchun har bir
+    # so'rovdan keyin "prepared statement ... already exists" xatosi
+    # chiqadi. Keshni butunlay o'chirish buni hal qiladi.
+    connect_args={"statement_cache_size": 0},
+)
 async_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
 
