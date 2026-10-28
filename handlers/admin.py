@@ -29,6 +29,10 @@ router = Router(name="admin")
 
 AUTHORIZED_IDS = set(ADMIN_IDS) | ({TORTKOL_MANAGER_ID} if TORTKOL_MANAGER_ID else set())
 
+# Vaqtincha o'chirilgan: hozircha To'rtko'l arizalari ham asosiy adminlarga
+# boradi. Qayta yoqish uchun shu qatorni True ga o'zgartiring.
+TORTKOL_ROUTING_ENABLED = False
+
 # candidate_id -> [(admin_id, message_id), ...] — "Qaror qabul qiling:"
 # xabarlarini kim(lar)ga yuborilgani (bitta admin qaror qilsa, qolganlarnikini
 # ham yangilash uchun). Xotirada — bot qayta ishga tushsa tozalanadi, lekin
@@ -44,6 +48,8 @@ ACTION_TO_STATUS = {
 
 
 def _recipients_for(branch: str) -> list[int]:
+    if not TORTKOL_ROUTING_ENABLED:
+        return list(ADMIN_IDS)
     if branch == "To'rtko'l" and TORTKOL_MANAGER_ID:
         return [TORTKOL_MANAGER_ID]
     if branch == "Ikkalasi ham":
